@@ -1,0 +1,65 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="tgenapiclient.MainWindow"
+        Title="tgenapiclient - HTTP Client" MinWidth="800" MinHeight="600"
+        Width="1024" Height="768"
+        Background="#1E1E1E">
+
+    <Grid RowDefinitions="Auto, *">
+        <!-- Top Bar: URL and Method -->
+        <Border Grid.Row="0" Background="#2D2D30" Padding="10">
+            <Grid ColumnDefinitions="Auto, *, Auto">
+                <ComboBox x:Name="MethodComboBox" Grid.Column="0" Width="100" Margin="0,0,10,0" SelectedIndex="0">
+                    <ComboBoxItem>GET</ComboBoxItem>
+                    <ComboBoxItem>POST</ComboBoxItem>
+                    <ComboBoxItem>PUT</ComboBoxItem>
+                    <ComboBoxItem>DELETE</ComboBoxItem>
+                    <ComboBoxItem>PATCH</ComboBoxItem>
+                </ComboBox>
+                
+                <TextBox x:Name="UrlTextBox" Grid.Column="1" Watermark="Enter request URL" Text="https://jsonplaceholder.typicode.com/posts/1" VerticalAlignment="Center" Margin="0,0,10,0" />
+                
+                <Button x:Name="SendButton" Grid.Column="2" Content="Send" Width="80" Classes="accent" Click="SendButton_Click" HorizontalAlignment="Right" HorizontalContentAlignment="Center"/>
+            </Grid>
+        </Border>
+
+        <!-- Main Content Area: Split Request and Response -->
+        <Grid Grid.Row="1" ColumnDefinitions="*, 4, *">
+            <!-- Left Pane: Request -->
+            <Grid Grid.Column="0" RowDefinitions="Auto, *">
+                <TabControl Grid.Row="1" Margin="5">
+                    <TabItem Header="Headers">
+                        <TextBox x:Name="RequestHeadersTextBox" AcceptsReturn="True" TextWrapping="Wrap" Watermark="Key: Value (one per line)" FontFamily="Consolas" />
+                    </TabItem>
+                    <TabItem Header="Body">
+                        <TextBox x:Name="RequestBodyTextBox" AcceptsReturn="True" TextWrapping="Wrap" Watermark="Request Body (e.g. JSON)" FontFamily="Consolas" />
+                    </TabItem>
+                </TabControl>
+            </Grid>
+
+            <!-- Splitter -->
+            <GridSplitter Grid.Column="1" Background="#3E3E42" ResizeDirection="Columns"/>
+
+            <!-- Right Pane: Response -->
+            <Grid Grid.Column="2" RowDefinitions="Auto, *">
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="10,5,10,0" Spacing="15">
+                    <TextBlock Text="Status:" Foreground="Gray"/>
+                    <TextBlock x:Name="StatusTextBlock" Text="---" FontWeight="Bold" />
+                    <TextBlock Text="Time:" Foreground="Gray"/>
+                    <TextBlock x:Name="TimeTextBlock" Text="--- ms" FontWeight="Bold" />
+                    <TextBlock Text="Size:" Foreground="Gray"/>
+                    <TextBlock x:Name="SizeTextBlock" Text="--- B" FontWeight="Bold" />
+                </StackPanel>
+
+                <TabControl Grid.Row="1" Margin="5">
+                    <TabItem Header="Response Body">
+                        <TextBox x:Name="ResponseBodyTextBox" AcceptsReturn="True" TextWrapping="Wrap" IsReadOnly="True" FontFamily="Consolas" Background="#282828" BorderThickness="0" />
+                    </TabItem>
+                    <TabItem Header="Headers">
+                        <TextBox x:Name="ResponseHeadersTextBox" AcceptsReturn="True" TextWrapping="Wrap" IsReadOnly="True" FontFamily="Consolas" Background="#282828" BorderThickness="0" />
+                    </TabItem>
+                </TabControl>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>

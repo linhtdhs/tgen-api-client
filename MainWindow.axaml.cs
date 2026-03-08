@@ -1,17 +1,17 @@
 using System;
-using System.Diagnostics;
 using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
+using System.Text.Json;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
+using tgenapiclient.Services;
+using tgenapiclient.Utils;
 
 namespace tgenapiclient;
 
 public partial class MainWindow : Window
 {
-    private static readonly HttpClient _httpClient = new HttpClient();
+    private readonly HttpService _httpService = new HttpService();
 
     public MainWindow()
     {
@@ -29,71 +29,27 @@ public partial class MainWindow : Window
         var url = UrlTextBox.Text;
         var methodStr = (MethodComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "GET";
         var method = new HttpMethod(methodStr);
+        var headersText = RequestHeadersTextBox.Text;
+        var bodyText = RequestBodyTextBox.Text;
 
         try
         {
-            var request = new HttpRequestMessage(method, url);
-
-            // Add headers
-            var headersText = RequestHeadersTextBox.Text;
-            if (!string.IsNullOrWhiteSpace(headersText))
-            {
-                var lines = headersText.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-                foreach (var line in lines)
-                {
-                    var index = line.IndexOf(':');
-                    if (index > 0)
-                    {
-                        var key = line.Substring(0, index).Trim();
-                        var value = line.Substring(index + 1).Trim();
-                        request.Headers.TryAddWithoutValidation(key, value);
-                    }
-                }
-            }
-
-            // Add body if applicable
-            if (method != HttpMethod.Get && method != HttpMethod.Head)
-            {
-                var bodyText = RequestBodyTextBox.Text;
-                if (!string.IsNullOrWhiteSpace(bodyText))
-                {
-                    request.Content = new StringContent(bodyText, Encoding.UTF8, "application/json"); // Basic default
-                }
-            }
-
-            var sw = Stopwatch.StartNew();
-            var response = await _httpClient.SendAsync(request);
-            sw.Stop();
-
-            var responseBody = await response.Content.ReadAsStringAsync();
-            
-            // Format headers
-            var sbHeaders = new StringBuilder();
-            foreach (var header in response.Headers)
-            {
-                sbHeaders.AppendLine($"{header.Key}: {string.Join(", ", header.Value)}");
-            }
-            foreach (var header in response.Content.Headers)
-            {
-                sbHeaders.AppendLine($"{header.Key}: {string.Join(", ", header.Value)}");
-            }
-
-            var size = System.Text.Encoding.UTF8.GetByteCount(responseBody);
+            var response = await _httpService.SendRequestAsync(method, url ?? string.Empty, headersText ?? string.Empty, bodyText ?? string.Empty);
 
             // Update UI
             Dispatcher.UIThread.Post(() =>
             {
-                StatusTextBlock.Text = $"{(int)response.StatusCode} {response.ReasonPhrase}";
-                if ((int)response.StatusCode >= 200 && (int)response.StatusCode < 300)
+                StatusTextBlock.Text = $"{response.StatusCode} {response.ReasonPhrase}";
+                if (response.IsSuccess)
                     StatusTextBlock.Foreground = Avalonia.Media.Brushes.LightGreen;
                 else
                     StatusTextBlock.Foreground = Avalonia.Media.Brushes.LightCoral;
 
-                TimeTextBlock.Text = $"{sw.ElapsedMilliseconds} ms";
-                SizeTextBlock.Text = $"{size} B";
+                TimeTextBlock.Text = $"{response.ElapsedMilliseconds} ms";
+                SizeTextBlock.Text = $"{response.SizeBytes} B";
 
-                ResponseBodyTextBox.Text = responseBody;
-                ResponseHeadersTextBox.Text = sbHeaders.ToString();
+                ResponseBodyTextBox.Text = response.Body;
+                ResponseHeadersTextBox.Text = response.Headers;
             });
         }
         catch (Exception ex)
@@ -111,6 +67,62 @@ public partial class MainWindow : Window
             {
                 SendButton.IsEnabled = true;
             });
+        }
+    }
+
+    private void TextBox_LostFocus(object? sender, RoutedEventArgs e)
+    {
+        if (sender is TextBox textBox)
+        {
+            FormatTextBoxContent(textBox);
+        }
+    }
+
+    private void TextBox_PastingFromClipboard(object? sender, RoutedEventArgs e)
+    {
+        if (sender is TextBox textBox)
+        {
+            // Delay formatting slightly to allow the paste to complete
+            Dispatcher.UIThread.Post(() => FormatTextBoxContent(textBox));
+        }
+    }
+
+    private void FormatTextBoxContent(TextBox textBox)
+    {
+        var text = textBox.Text;
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            DataValidationErrors.SetErrors(textBox, null);
+            return;
+        }
+
+        try
+        {
+            if (textBox == RequestBodyTextBox)
+            {
+                textBox.Text = TextFormatter.FormatBody(text);
+            }
+            else if (textBox == RequestHeadersTextBox)
+            {
+                textBox.Text = TextFormatter.FormatHeaders(text);
+            }
+            
+            // Clear any previous errors on success
+            DataValidationErrors.SetErrors(textBox, null);
+        }
+        catch (JsonException ex)
+        {
+            DataValidationErrors.SetErrors(textBox, new[] { ex.Message });
+            ErrorHighlighter.Highlight(textBox, text, ex.LineNumber, ex.BytePositionInLine);
+        }
+        catch (System.Xml.XmlException ex)
+        {
+            DataValidationErrors.SetErrors(textBox, new[] { ex.Message });
+            ErrorHighlighter.Highlight(textBox, text, ex.LineNumber - 1, ex.LinePosition - 1);
+        }
+        catch (Exception ex)
+        {
+            DataValidationErrors.SetErrors(textBox, new[] { ex.Message });
         }
     }
 }

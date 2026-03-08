@@ -29,10 +29,10 @@
             <Grid Grid.Column="0" RowDefinitions="Auto, *">
                 <TabControl Grid.Row="1" Margin="5">
                     <TabItem Header="Headers">
-                        <TextBox x:Name="RequestHeadersTextBox" AcceptsReturn="True" TextWrapping="Wrap" Watermark="Key: Value (one per line)" FontFamily="Consolas" />
+                        <TextBox x:Name="RequestHeadersTextBox" AcceptsReturn="True" TextWrapping="Wrap" Watermark="Key: Value (one per line)" FontFamily="Consolas" LostFocus="TextBox_LostFocus" PastingFromClipboard="TextBox_PastingFromClipboard"/>
                     </TabItem>
                     <TabItem Header="Body">
-                        <TextBox x:Name="RequestBodyTextBox" AcceptsReturn="True" TextWrapping="Wrap" Watermark="Request Body (e.g. JSON)" FontFamily="Consolas" />
+                        <TextBox x:Name="RequestBodyTextBox" AcceptsReturn="True" TextWrapping="Wrap" Watermark="Request Body (e.g. JSON)" FontFamily="Consolas" LostFocus="TextBox_LostFocus" PastingFromClipboard="TextBox_PastingFromClipboard"/>
                     </TabItem>
                 </TabControl>
             </Grid>
@@ -52,7 +52,7 @@
                 </StackPanel>
 
                 <TabControl Grid.Row="1" Margin="5">
-                    <TabItem Header="Response Body">
+                    <TabItem Header="Response">
                         <TextBox x:Name="ResponseBodyTextBox" AcceptsReturn="True" TextWrapping="Wrap" IsReadOnly="True" FontFamily="Consolas" Background="#282828" BorderThickness="0" />
                     </TabItem>
                     <TabItem Header="Headers">

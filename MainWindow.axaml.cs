@@ -4,6 +4,7 @@ using System.Text.Json;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
+using tgenapiclient.Models;
 using tgenapiclient.Services;
 using tgenapiclient.Utils;
 

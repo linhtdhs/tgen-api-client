@@ -2,6 +2,7 @@ using System;
 using System.Net.Http;
 using System.Text.Json;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using AvaloniaEdit;
@@ -24,6 +25,25 @@ public partial class MainWindow : Window
         EnvComboBox.SelectedItem = _envService.ActiveEnvironment;
 
         var colorizer = new EnvironmentColorizer();
+        UrlEditor.Text = "{{baseUrl}}/posts/1";
+        
+        // Remove default AvaloniaEdit URL behavior (blue text/underline)
+        UrlEditor.TextArea.TextView.ElementGenerators.Clear();
+        
+        // Replace standard KeyDown with a Tunneling (preview) event handler
+        UrlEditor.TextArea.AddHandler(InputElement.KeyDownEvent, UrlEditor_KeyDown_Tunnel, RoutingStrategies.Tunnel);
+        
+        // Remove the default "New Line" behavior from AvaloniaEdit
+        foreach (var binding in UrlEditor.TextArea.DefaultInputHandler.KeyBindings)
+        {
+            if (binding.Gesture?.Key == Key.Enter || binding.Gesture?.Key == Key.Return)
+            {
+                UrlEditor.TextArea.DefaultInputHandler.KeyBindings.Remove(binding);
+                break;
+            }
+        }
+        
+        UrlEditor.TextArea.TextView.LineTransformers.Add(colorizer);
         RequestHeadersEditor.TextArea.TextView.LineTransformers.Add(colorizer);
         RequestBodyEditor.TextArea.TextView.LineTransformers.Add(colorizer);
         
@@ -45,6 +65,15 @@ public partial class MainWindow : Window
         await envWindow.ShowDialog(this);
     }
 
+    private void UrlEditor_KeyDown_Tunnel(object? sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter || e.Key == Key.Return)
+        {
+            e.Handled = true; // Prevent new line
+            SendButton_Click(sender, new RoutedEventArgs()); // Optionally trigger a send
+        }
+    }
+
     private async void SendButton_Click(object? sender, RoutedEventArgs e)
     {
         SendButton.IsEnabled = false;
@@ -53,7 +82,7 @@ public partial class MainWindow : Window
         ResponseBodyEditor.Text = string.Empty;
         ResponseHeadersEditor.Text = string.Empty;
 
-        var url = _envService.ReplaceVariables(UrlTextBox.Text ?? string.Empty);
+        var url = _envService.ReplaceVariables(UrlEditor.Text ?? string.Empty);
         var methodStr = (MethodComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "GET";
         var method = new HttpMethod(methodStr);
         var headersText = _envService.ReplaceVariables(RequestHeadersEditor.Text ?? string.Empty);

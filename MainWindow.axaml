@@ -28,7 +28,9 @@
                     <ComboBoxItem>PATCH</ComboBoxItem>
                 </ComboBox>
                 
-                <TextBox x:Name="UrlTextBox" Grid.Column="3" Watermark="Enter request URL" Text="https://jsonplaceholder.typicode.com/posts/1" VerticalAlignment="Center" Margin="0,0,10,0" />
+                <Border Grid.Column="3" BorderBrush="#555555" BorderThickness="1" CornerRadius="3" Background="#1E1E1E" Margin="0,0,10,0" VerticalAlignment="Center" Height="32">
+                    <AvaloniaEdit:TextEditor x:Name="UrlEditor" WordWrap="False" FontFamily="Consolas" Background="Transparent" ShowLineNumbers="False" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" Margin="5,5,5,0" Padding="0,2,2,0"/>
+                </Border>
                 
                 <Button x:Name="SendButton" Grid.Column="4" Content="Send" Width="80" Classes="accent" Click="SendButton_Click" HorizontalAlignment="Right" HorizontalContentAlignment="Center"/>
             </Grid>

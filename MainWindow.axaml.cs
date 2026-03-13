@@ -2,8 +2,10 @@ using System;
 using System.Net.Http;
 using System.Text.Json;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
+using AvaloniaEdit;
 using tgenapiclient.Models;
 using tgenapiclient.Services;
 using tgenapiclient.Utils;
@@ -13,10 +15,63 @@ namespace tgenapiclient;
 public partial class MainWindow : Window
 {
     private readonly HttpService _httpService = new HttpService();
+    private readonly EnvironmentService _envService = new EnvironmentService();
 
     public MainWindow()
     {
         InitializeComponent();
+        
+        EnvComboBox.ItemsSource = _envService.Environments;
+        EnvComboBox.SelectedItem = _envService.ActiveEnvironment;
+
+        var colorizer = new EnvironmentColorizer();
+        UrlEditor.Text = "{{baseUrl}}/posts/1";
+        
+        // Remove default AvaloniaEdit URL behavior (blue text/underline)
+        UrlEditor.TextArea.TextView.ElementGenerators.Clear();
+        
+        // Replace standard KeyDown with a Tunneling (preview) event handler
+        UrlEditor.TextArea.AddHandler(InputElement.KeyDownEvent, UrlEditor_KeyDown_Tunnel, RoutingStrategies.Tunnel);
+        
+        // Remove the default "New Line" behavior from AvaloniaEdit
+        foreach (var binding in UrlEditor.TextArea.DefaultInputHandler.KeyBindings)
+        {
+            if (binding.Gesture?.Key == Key.Enter || binding.Gesture?.Key == Key.Return)
+            {
+                UrlEditor.TextArea.DefaultInputHandler.KeyBindings.Remove(binding);
+                break;
+            }
+        }
+        
+        UrlEditor.TextArea.TextView.LineTransformers.Add(colorizer);
+        RequestHeadersEditor.TextArea.TextView.LineTransformers.Add(colorizer);
+        RequestBodyEditor.TextArea.TextView.LineTransformers.Add(colorizer);
+        
+        RequestHeadersEditor.LostFocus += Editor_LostFocus;
+        RequestBodyEditor.LostFocus += Editor_LostFocus;
+    }
+
+    private void EnvComboBox_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (EnvComboBox.SelectedItem is AppEnvironment env)
+        {
+            _envService.ActiveEnvironment = env;
+        }
+    }
+
+    private async void ManageEnvButton_Click(object? sender, RoutedEventArgs e)
+    {
+        var envWindow = new EnvironmentWindow(_envService);
+        await envWindow.ShowDialog(this);
+    }
+
+    private void UrlEditor_KeyDown_Tunnel(object? sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter || e.Key == Key.Return)
+        {
+            e.Handled = true; // Prevent new line
+            SendButton_Click(sender, new RoutedEventArgs()); // Optionally trigger a send
+        }
     }
 
     private async void SendButton_Click(object? sender, RoutedEventArgs e)
@@ -24,18 +79,18 @@ public partial class MainWindow : Window
         SendButton.IsEnabled = false;
         StatusTextBlock.Text = "Sending...";
         TimeTextBlock.Text = "--- ms";
-        ResponseBodyTextBox.Text = string.Empty;
-        ResponseHeadersTextBox.Text = string.Empty;
+        ResponseBodyEditor.Text = string.Empty;
+        ResponseHeadersEditor.Text = string.Empty;
 
-        var url = UrlTextBox.Text;
+        var url = _envService.ReplaceVariables(UrlEditor.Text ?? string.Empty);
         var methodStr = (MethodComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "GET";
         var method = new HttpMethod(methodStr);
-        var headersText = RequestHeadersTextBox.Text;
-        var bodyText = RequestBodyTextBox.Text;
+        var headersText = _envService.ReplaceVariables(RequestHeadersEditor.Text ?? string.Empty);
+        var bodyText = _envService.ReplaceVariables(RequestBodyEditor.Text ?? string.Empty);
 
         try
         {
-            var response = await _httpService.SendRequestAsync(method, url ?? string.Empty, headersText ?? string.Empty, bodyText ?? string.Empty);
+            var response = await _httpService.SendRequestAsync(method, url, headersText, bodyText);
 
             // Update UI
             Dispatcher.UIThread.Post(() =>
@@ -49,8 +104,8 @@ public partial class MainWindow : Window
                 TimeTextBlock.Text = $"{response.ElapsedMilliseconds} ms";
                 SizeTextBlock.Text = $"{response.SizeBytes} B";
 
-                ResponseBodyTextBox.Text = response.Body;
-                ResponseHeadersTextBox.Text = response.Headers;
+                ResponseBodyEditor.Text = response.Body;
+                ResponseHeadersEditor.Text = response.Headers;
             });
         }
         catch (Exception ex)
@@ -59,7 +114,7 @@ public partial class MainWindow : Window
             {
                 StatusTextBlock.Text = "Error";
                 StatusTextBlock.Foreground = Avalonia.Media.Brushes.Red;
-                ResponseBodyTextBox.Text = ex.ToString();
+                ResponseBodyEditor.Text = ex.ToString();
             });
         }
         finally
@@ -71,59 +126,50 @@ public partial class MainWindow : Window
         }
     }
 
-    private void TextBox_LostFocus(object? sender, RoutedEventArgs e)
+    private void Editor_LostFocus(object? sender, RoutedEventArgs e)
     {
-        if (sender is TextBox textBox)
+        if (sender is TextEditor editor)
         {
-            FormatTextBoxContent(textBox);
+            FormatEditorContent(editor);
         }
     }
 
-    private void TextBox_PastingFromClipboard(object? sender, RoutedEventArgs e)
+    private void FormatEditorContent(TextEditor editor)
     {
-        if (sender is TextBox textBox)
-        {
-            // Delay formatting slightly to allow the paste to complete
-            Dispatcher.UIThread.Post(() => FormatTextBoxContent(textBox));
-        }
-    }
-
-    private void FormatTextBoxContent(TextBox textBox)
-    {
-        var text = textBox.Text;
+        var text = editor.Text;
         if (string.IsNullOrWhiteSpace(text))
         {
-            DataValidationErrors.SetErrors(textBox, null);
+            DataValidationErrors.SetErrors(editor, null);
             return;
         }
 
         try
         {
-            if (textBox == RequestBodyTextBox)
+            if (editor == RequestBodyEditor)
             {
-                textBox.Text = TextFormatter.FormatBody(text);
+                editor.Text = TextFormatter.FormatBody(text);
             }
-            else if (textBox == RequestHeadersTextBox)
+            else if (editor == RequestHeadersEditor)
             {
-                textBox.Text = TextFormatter.FormatHeaders(text);
+                editor.Text = TextFormatter.FormatHeaders(text);
             }
             
             // Clear any previous errors on success
-            DataValidationErrors.SetErrors(textBox, null);
+            DataValidationErrors.SetErrors(editor, null);
         }
         catch (JsonException ex)
         {
-            DataValidationErrors.SetErrors(textBox, new[] { ex.Message });
-            ErrorHighlighter.Highlight(textBox, text, ex.LineNumber, ex.BytePositionInLine);
+            DataValidationErrors.SetErrors(editor, new[] { ex.Message });
+            // ErrorHighlighter needs update for TextEditor or remove for now
         }
         catch (System.Xml.XmlException ex)
         {
-            DataValidationErrors.SetErrors(textBox, new[] { ex.Message });
-            ErrorHighlighter.Highlight(textBox, text, ex.LineNumber - 1, ex.LinePosition - 1);
+            DataValidationErrors.SetErrors(editor, new[] { ex.Message });
+            // ErrorHighlighter needs update for TextEditor or remove for now
         }
         catch (Exception ex)
         {
-            DataValidationErrors.SetErrors(textBox, new[] { ex.Message });
+            DataValidationErrors.SetErrors(editor, new[] { ex.Message });
         }
     }
 }

@@ -27,10 +27,13 @@ public static class TextFormatter
     public static string FormatHeaders(string text)
     {
         if (string.IsNullOrWhiteSpace(text)) return text;
-        var lines = text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        var lines = text.Split(new[] { '\n' });
         var formattedHeaders = new StringBuilder();
-        foreach (var line in lines)
+        for (int i = 0; i < lines.Length; i++)
         {
+            var line = lines[i].TrimEnd('\r');
+            if (string.IsNullOrWhiteSpace(line)) continue;
+
             var index = line.IndexOf(':');
             if (index > 0)
             {
@@ -40,7 +43,7 @@ public static class TextFormatter
             }
             else
             {
-                formattedHeaders.AppendLine(line.Trim());
+                throw new HeaderFormatException($"Invalid header format. Expected 'Key: Value'.", i, line.Length);
             }
         }
         return formattedHeaders.ToString().TrimEnd();

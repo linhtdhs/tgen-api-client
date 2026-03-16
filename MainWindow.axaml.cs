@@ -16,6 +16,9 @@ public partial class MainWindow : Window
 {
     private readonly HttpService _httpService = new HttpService();
     private readonly EnvironmentService _envService = new EnvironmentService();
+    private readonly ErrorColorizer _bodyErrorColorizer = new ErrorColorizer();
+    private readonly ErrorColorizer _headersErrorColorizer = new ErrorColorizer();
+    private readonly HeaderKeyColorizer _headerKeyColorizer = new HeaderKeyColorizer();
 
     public MainWindow()
     {
@@ -29,6 +32,10 @@ public partial class MainWindow : Window
         
         // Remove default AvaloniaEdit URL behavior (blue text/underline)
         UrlEditor.TextArea.TextView.ElementGenerators.Clear();
+        RequestHeadersEditor.TextArea.TextView.ElementGenerators.Clear();
+        ResponseHeadersEditor.TextArea.TextView.ElementGenerators.Clear();
+        RequestBodyEditor.TextArea.TextView.ElementGenerators.Clear();
+        ResponseBodyEditor.TextArea.TextView.ElementGenerators.Clear();
         
         // Replace standard KeyDown with a Tunneling (preview) event handler
         UrlEditor.TextArea.AddHandler(InputElement.KeyDownEvent, UrlEditor_KeyDown_Tunnel, RoutingStrategies.Tunnel);
@@ -46,6 +53,12 @@ public partial class MainWindow : Window
         UrlEditor.TextArea.TextView.LineTransformers.Add(colorizer);
         RequestHeadersEditor.TextArea.TextView.LineTransformers.Add(colorizer);
         RequestBodyEditor.TextArea.TextView.LineTransformers.Add(colorizer);
+        
+        RequestHeadersEditor.TextArea.TextView.LineTransformers.Add(_headerKeyColorizer);
+        ResponseHeadersEditor.TextArea.TextView.LineTransformers.Add(_headerKeyColorizer);
+        
+        RequestHeadersEditor.TextArea.TextView.LineTransformers.Add(_headersErrorColorizer);
+        RequestBodyEditor.TextArea.TextView.LineTransformers.Add(_bodyErrorColorizer);
         
         RequestHeadersEditor.LostFocus += Editor_LostFocus;
         RequestBodyEditor.LostFocus += Editor_LostFocus;
@@ -137,6 +150,11 @@ public partial class MainWindow : Window
     private void FormatEditorContent(TextEditor editor)
     {
         var text = editor.Text;
+        var errorColorizer = editor == RequestBodyEditor ? _bodyErrorColorizer : _headersErrorColorizer;
+        
+        errorColorizer.ClearError();
+        editor.TextArea.TextView.Redraw();
+        
         if (string.IsNullOrWhiteSpace(text))
         {
             DataValidationErrors.SetErrors(editor, null);
@@ -160,16 +178,45 @@ public partial class MainWindow : Window
         catch (JsonException ex)
         {
             DataValidationErrors.SetErrors(editor, new[] { ex.Message });
-            // ErrorHighlighter needs update for TextEditor or remove for now
+            if (ex.LineNumber.HasValue && ex.BytePositionInLine.HasValue)
+            {
+                int offset = GetErrorOffset(editor, ex.LineNumber.Value, ex.BytePositionInLine.Value);
+                errorColorizer.SetError(Math.Max(0, offset - 1), 3);
+                editor.TextArea.TextView.Redraw();
+            }
         }
         catch (System.Xml.XmlException ex)
         {
             DataValidationErrors.SetErrors(editor, new[] { ex.Message });
-            // ErrorHighlighter needs update for TextEditor or remove for now
+            int offset = GetErrorOffset(editor, ex.LineNumber - 1, ex.LinePosition - 1);
+            errorColorizer.SetError(Math.Max(0, offset - 1), 3);
+            editor.TextArea.TextView.Redraw();
+        }
+        catch (HeaderFormatException ex)
+        {
+            DataValidationErrors.SetErrors(editor, new[] { ex.Message });
+            int offset = GetErrorOffset(editor, ex.LineNumber, ex.CharPosition);
+            errorColorizer.SetError(Math.Max(0, offset - 1), 3);
+            editor.TextArea.TextView.Redraw();
         }
         catch (Exception ex)
         {
             DataValidationErrors.SetErrors(editor, new[] { ex.Message });
         }
+    }
+
+    private int GetErrorOffset(TextEditor editor, long lineIndex, long charPosition)
+    {
+        int line = (int)lineIndex + 1;
+        int column = (int)charPosition + 1;
+        
+        if (line < 1) line = 1;
+        if (line > editor.Document.LineCount) line = editor.Document.LineCount;
+        
+        var documentLine = editor.Document.GetLineByNumber(line);
+        if (column < 1) column = 1;
+        if (column > documentLine.Length + 1) column = documentLine.Length + 1;
+        
+        return documentLine.Offset + column - 1;
     }
 }

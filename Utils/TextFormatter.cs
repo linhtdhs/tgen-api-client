@@ -7,19 +7,43 @@ namespace tgenapiclient.Utils;
 
 public static class TextFormatter
 {
-    public static string FormatBody(string text)
+    public static string FormatBody(string text, string indentString = "  ")
     {
         if (string.IsNullOrWhiteSpace(text)) return text;
         var trimmed = text.Trim();
         if (trimmed.StartsWith("{") || trimmed.StartsWith("["))
         {
             var parsedJson = JsonDocument.Parse(trimmed);
-            return JsonSerializer.Serialize(parsedJson, new JsonSerializerOptions { WriteIndented = true });
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            
+            // Configure .NET 9/10 indentation
+            if (indentString == "\t")
+            {
+                options.IndentCharacter = '\t';
+                options.IndentSize = 1;
+            }
+            else
+            {
+                options.IndentCharacter = ' ';
+                options.IndentSize = indentString.Length > 0 ? indentString.Length : 2;
+            }
+            
+            return JsonSerializer.Serialize(parsedJson, options);
         }
         else if (trimmed.StartsWith("<"))
         {
             var parsedXml = XDocument.Parse(trimmed);
-            return parsedXml.ToString();
+            var settings = new System.Xml.XmlWriterSettings
+            {
+                Indent = true,
+                IndentChars = indentString,
+                OmitXmlDeclaration = true
+            };
+            
+            using var sw = new System.IO.StringWriter();
+            using var xw = System.Xml.XmlWriter.Create(sw, settings);
+            parsedXml.Save(xw);
+            return sw.ToString();
         }
         return text;
     }

@@ -72,6 +72,18 @@ public partial class MainWindow : Window
         }
     }
 
+    private void IndentComboBox_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (RequestBodyEditor != null)
+        {
+            FormatEditorContent(RequestBodyEditor);
+        }
+        if (ResponseBodyEditor != null)
+        {
+            FormatEditorContent(ResponseBodyEditor);
+        }
+    }
+
     private async void ManageEnvButton_Click(object? sender, RoutedEventArgs e)
     {
         var envWindow = new EnvironmentWindow(_envService);
@@ -163,11 +175,12 @@ public partial class MainWindow : Window
 
         try
         {
-            if (editor == RequestBodyEditor)
+            if (editor == RequestBodyEditor || editor == ResponseBodyEditor)
             {
-                editor.Text = TextFormatter.FormatBody(text);
+                var indentString = (IndentComboBox?.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "  ";
+                editor.Text = TextFormatter.FormatBody(text, indentString);
             }
-            else if (editor == RequestHeadersEditor)
+            else if (editor == RequestHeadersEditor || editor == ResponseHeadersEditor)
             {
                 editor.Text = TextFormatter.FormatHeaders(text);
             }

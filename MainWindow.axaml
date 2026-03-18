@@ -10,7 +10,7 @@
     <Grid RowDefinitions="Auto, *">
         <!-- Top Bar: URL and Method -->
         <Border Grid.Row="0" Background="#2D2D30" Padding="10">
-            <Grid ColumnDefinitions="Auto, Auto, Auto, *, Auto">
+            <Grid ColumnDefinitions="Auto, Auto, Auto, Auto, *, Auto">
                 <ComboBox x:Name="EnvComboBox" Grid.Column="0" Width="150" Margin="0,0,5,0" SelectionChanged="EnvComboBox_SelectionChanged">
                     <ComboBox.ItemTemplate>
                         <DataTemplate DataType="{x:Type models:AppEnvironment}">
@@ -28,11 +28,11 @@
                     <ComboBoxItem>PATCH</ComboBoxItem>
                 </ComboBox>
                 
-                <Border Grid.Column="3" BorderBrush="#555555" BorderThickness="1" CornerRadius="3" Background="#1E1E1E" Margin="0,0,10,0" VerticalAlignment="Center" Height="32">
+                <Border Grid.Column="4" BorderBrush="#555555" BorderThickness="1" CornerRadius="3" Background="#1E1E1E" Margin="0,0,10,0" VerticalAlignment="Center" Height="32">
                     <AvaloniaEdit:TextEditor x:Name="UrlEditor" WordWrap="False" FontFamily="Consolas" Background="Transparent" ShowLineNumbers="False" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" Margin="5,5,5,0" Padding="0,2,2,0"/>
                 </Border>
                 
-                <Button x:Name="SendButton" Grid.Column="4" Content="Send" Width="80" Classes="accent" Click="SendButton_Click" HorizontalAlignment="Right" HorizontalContentAlignment="Center"/>
+                <Button x:Name="SendButton" Grid.Column="5" Content="Send" Width="80" Classes="accent" Click="SendButton_Click" HorizontalAlignment="Right" HorizontalContentAlignment="Center"/>
             </Grid>
         </Border>
 
@@ -40,7 +40,16 @@
         <Grid Grid.Row="1" ColumnDefinitions="*, 4, *">
             <!-- Left Pane: Request -->
             <Grid Grid.Column="0" RowDefinitions="Auto, *">
-                <TabControl Grid.Row="1" Margin="5">
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="10,5,10,0" Spacing="10" HorizontalAlignment="Right">
+                    <TextBlock Text="Indent:" Foreground="Gray" VerticalAlignment="Center"/>
+                    <ComboBox x:Name="IndentComboBox" Width="110" SelectedIndex="0" SelectionChanged="IndentComboBox_SelectionChanged">
+                        <ComboBoxItem Content="2 Spaces" Tag="  " />
+                        <ComboBoxItem Content="4 Spaces" Tag="    " />
+                        <ComboBoxItem Content="Tabs" Tag="&#x9;" />
+                    </ComboBox>
+                </StackPanel>
+
+                <TabControl Grid.Row="1" Margin="5,0,5,0">
                     <TabItem Header="Headers">
                         <Border BorderBrush="#555555" BorderThickness="1" CornerRadius="3" Padding="2" Background="#1E1E1E">
                             <AvaloniaEdit:TextEditor x:Name="RequestHeadersEditor" WordWrap="True" FontFamily="Consolas" ShowLineNumbers="True" Background="Transparent"/>
@@ -59,7 +68,7 @@
 
             <!-- Right Pane: Response -->
             <Grid Grid.Column="2" RowDefinitions="Auto, *">
-                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="10,5,10,0" Spacing="15">
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="10,5,10,10" Spacing="15">
                     <TextBlock Text="Status:" Foreground="Gray"/>
                     <TextBlock x:Name="StatusTextBlock" Text="---" FontWeight="Bold" />
                     <TextBlock Text="Time:" Foreground="Gray"/>

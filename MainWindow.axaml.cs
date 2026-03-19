@@ -1,6 +1,8 @@
 using System;
+using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
+using tgenapiclient.Constants;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -16,6 +18,7 @@ public partial class MainWindow : Window
 {
     private readonly HttpService _httpService = new HttpService();
     private readonly EnvironmentService _envService = new EnvironmentService();
+    private readonly HistoryService _historyService = new HistoryService();
     private readonly ErrorColorizer _bodyErrorColorizer = new ErrorColorizer();
     private readonly ErrorColorizer _headersErrorColorizer = new ErrorColorizer();
     private readonly HeaderKeyColorizer _headerKeyColorizer = new HeaderKeyColorizer();
@@ -26,9 +29,10 @@ public partial class MainWindow : Window
         
         EnvComboBox.ItemsSource = _envService.Environments;
         EnvComboBox.SelectedItem = _envService.ActiveEnvironment;
+        HistoryListBox.ItemsSource = _historyService.History;
 
         var colorizer = new EnvironmentColorizer();
-        UrlEditor.Text = "{{baseUrl}}/posts/1";
+        UrlEditor.Text = AppConstants.DefaultUrl;
         
         // Remove default AvaloniaEdit URL behavior (blue text/underline)
         UrlEditor.TextArea.TextView.ElementGenerators.Clear();
@@ -90,6 +94,31 @@ public partial class MainWindow : Window
         await envWindow.ShowDialog(this);
     }
 
+    private void HistoryListBox_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (HistoryListBox.SelectedItem is HistoryItem item)
+        {
+            // Set Request UI
+            MethodComboBox.SelectedItem = MethodComboBox.Items.Cast<ComboBoxItem>().FirstOrDefault(i => i.Content?.ToString() == item.Method) ?? MethodComboBox.Items.Cast<ComboBoxItem>().First();
+            UrlEditor.Text = item.Url;
+            RequestHeadersEditor.Text = item.RequestHeaders;
+            RequestBodyEditor.Text = item.RequestBody;
+
+            // Set Response UI
+            StatusTextBlock.Text = $"{item.StatusCode} {item.ReasonPhrase}";
+            StatusTextBlock.Foreground = item.IsSuccess ? Avalonia.Media.Brushes.LightGreen : Avalonia.Media.Brushes.LightCoral;
+            TimeTextBlock.Text = $"{item.ElapsedMilliseconds} ms";
+            SizeTextBlock.Text = $"{item.SizeBytes} B";
+            ResponseHeadersEditor.Text = item.ResponseHeaders;
+            ResponseBodyEditor.Text = item.ResponseBody;
+        }
+    }
+
+    private void ClearHistoryButton_Click(object? sender, RoutedEventArgs e)
+    {
+        _historyService.ClearHistory();
+    }
+
     private void UrlEditor_KeyDown_Tunnel(object? sender, KeyEventArgs e)
     {
         if (e.Key == Key.Enter || e.Key == Key.Return)
@@ -108,7 +137,7 @@ public partial class MainWindow : Window
         ResponseHeadersEditor.Text = string.Empty;
 
         var url = _envService.ReplaceVariables(UrlEditor.Text ?? string.Empty);
-        var methodStr = (MethodComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "GET";
+        var methodStr = (MethodComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? AppConstants.DefaultMethod;
         var method = new HttpMethod(methodStr);
         var headersText = _envService.ReplaceVariables(RequestHeadersEditor.Text ?? string.Empty);
         var bodyText = _envService.ReplaceVariables(RequestBodyEditor.Text ?? string.Empty);
@@ -117,9 +146,26 @@ public partial class MainWindow : Window
         {
             var response = await _httpService.SendRequestAsync(method, url, headersText, bodyText);
 
+            var historyItem = new HistoryItem
+            {
+                Method = methodStr,
+                Url = url,
+                RequestHeaders = headersText,
+                RequestBody = bodyText,
+                StatusCode = (int)response.StatusCode,
+                ReasonPhrase = response.ReasonPhrase,
+                IsSuccess = response.IsSuccess,
+                ElapsedMilliseconds = response.ElapsedMilliseconds,
+                SizeBytes = response.SizeBytes,
+                ResponseHeaders = response.Headers,
+                ResponseBody = response.Body
+            };
+
             // Update UI
             Dispatcher.UIThread.Post(() =>
             {
+                _historyService.AddEntry(historyItem);
+                
                 StatusTextBlock.Text = $"{response.StatusCode} {response.ReasonPhrase}";
                 if (response.IsSuccess)
                     StatusTextBlock.Foreground = Avalonia.Media.Brushes.LightGreen;

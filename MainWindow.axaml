@@ -36,10 +36,30 @@
             </Grid>
         </Border>
 
-        <!-- Main Content Area: Split Request and Response -->
-        <Grid Grid.Row="1" ColumnDefinitions="*, 4, *">
-            <!-- Left Pane: Request -->
-            <Grid Grid.Column="0" RowDefinitions="Auto, *">
+        <!-- Main Content Area: Split History, Request, and Response -->
+        <Grid Grid.Row="1" ColumnDefinitions="250, 4, *, 4, *">
+            
+            <!-- Far Left Pane: History -->
+            <Grid Grid.Column="0" RowDefinitions="Auto, *, Auto" Margin="5">
+                <TextBlock Grid.Row="0" Text="History" FontWeight="Bold" Margin="5,0,0,10" Foreground="LightGray"/>
+                <ListBox x:Name="HistoryListBox" Grid.Row="1" Background="#2D2D30" SelectionChanged="HistoryListBox_SelectionChanged" BorderThickness="1" BorderBrush="#444444" CornerRadius="3" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate DataType="{x:Type models:HistoryItem}">
+                            <StackPanel Margin="0,2">
+                                <TextBlock Text="{Binding DisplaySummary}" FontWeight="Bold" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding DisplayTime}" FontSize="11" Foreground="Gray"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+                <Button x:Name="ClearHistoryButton" Grid.Row="2" Content="Clear" Click="ClearHistoryButton_Click" Margin="0,10,0,0" HorizontalAlignment="Right" Foreground="IndianRed"/>
+            </Grid>
+
+            <!-- Splitter 1 -->
+            <GridSplitter Grid.Column="1" Background="#3E3E42" ResizeDirection="Columns"/>
+
+            <!-- Center Pane: Request -->
+            <Grid Grid.Column="2" RowDefinitions="Auto, *">
                 <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="10,5,10,0" Spacing="10" HorizontalAlignment="Right">
                     <TextBlock Text="Indent:" Foreground="Gray" VerticalAlignment="Center"/>
                     <ComboBox x:Name="IndentComboBox" Width="110" SelectedIndex="0" SelectionChanged="IndentComboBox_SelectionChanged">
@@ -63,11 +83,11 @@
                 </TabControl>
             </Grid>
 
-            <!-- Splitter -->
-            <GridSplitter Grid.Column="1" Background="#3E3E42" ResizeDirection="Columns"/>
+            <!-- Splitter 2 -->
+            <GridSplitter Grid.Column="3" Background="#3E3E42" ResizeDirection="Columns"/>
 
             <!-- Right Pane: Response -->
-            <Grid Grid.Column="2" RowDefinitions="Auto, *">
+            <Grid Grid.Column="4" RowDefinitions="Auto, *">
                 <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="10,5,10,10" Spacing="15">
                     <TextBlock Text="Status:" Foreground="Gray"/>
                     <TextBlock x:Name="StatusTextBlock" Text="---" FontWeight="Bold" />

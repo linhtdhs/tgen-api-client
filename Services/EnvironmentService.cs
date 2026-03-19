@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Linq;
+using tgenapiclient.Constants;
 using tgenapiclient.Models;
 
 namespace tgenapiclient.Services;
@@ -14,7 +15,7 @@ public class EnvironmentService
     {
         // Add a default environment
         var defaultEnv = new AppEnvironment("Default");
-        defaultEnv.Variables.Add(new EnvironmentVariable("baseUrl", "https://jsonplaceholder.typicode.com"));
+        defaultEnv.Variables.Add(new EnvironmentVariable("baseUrl", AppConstants.DefaultBaseUrl));
         Environments.Add(defaultEnv);
         ActiveEnvironment = defaultEnv;
     }

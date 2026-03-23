@@ -10,6 +10,7 @@ using Avalonia.Threading;
 using AvaloniaEdit;
 using TGenApiClient.Core.Models;
 using TGenApiClient.Core.Services;
+using TGenApiClient.UI.Constants;
 using TGenApiClient.UI.Utils;
 
 namespace TGenApiClient.UI;
@@ -131,8 +132,8 @@ public partial class MainWindow : Window
     private async void SendButton_Click(object? sender, RoutedEventArgs e)
     {
         SendButton.IsEnabled = false;
-        StatusTextBlock.Text = "Sending...";
-        TimeTextBlock.Text = "--- ms";
+        StatusTextBlock.Text = UIConstants.StatusSending;
+        TimeTextBlock.Text = UIConstants.DefaultTimeText;
         ResponseBodyEditor.Text = string.Empty;
         ResponseHeadersEditor.Text = string.Empty;
 
@@ -183,7 +184,7 @@ public partial class MainWindow : Window
         {
             Dispatcher.UIThread.Post(() =>
             {
-                StatusTextBlock.Text = "Error";
+                StatusTextBlock.Text = UIConstants.StatusError;
                 StatusTextBlock.Foreground = Avalonia.Media.Brushes.Red;
                 ResponseBodyEditor.Text = ex.ToString();
             });
@@ -223,7 +224,7 @@ public partial class MainWindow : Window
         {
             if (editor == RequestBodyEditor || editor == ResponseBodyEditor)
             {
-                var indentString = (IndentComboBox?.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "  ";
+                var indentString = (IndentComboBox?.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? UIConstants.DefaultIndentTokens;
                 editor.Text = TextFormatter.FormatBody(text, indentString);
             }
             else if (editor == RequestHeadersEditor || editor == ResponseHeadersEditor)

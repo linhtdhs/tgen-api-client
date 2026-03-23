@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using TGenApiClient.Core.Constants;
 using TGenApiClient.Core.Contracts;
 using TGenApiClient.Core.Models;
 
@@ -49,15 +50,15 @@ public class HttpService : IRequestExecutionService
         {
             if (!string.IsNullOrWhiteSpace(bodyText))
             {
-                request.Content = new StringContent(bodyText, Encoding.UTF8, "application/json"); // Basic default
+                request.Content = new StringContent(bodyText, Encoding.UTF8, AppConstants.JsonMediaType);
             }
         }
 
         var sw = Stopwatch.StartNew();
-        var response = await _httpClient.SendAsync(request);
+        var response = await _httpClient.SendAsync(request).ConfigureAwait(false);
         sw.Stop();
 
-        var responseBody = await response.Content.ReadAsStringAsync();
+        var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
         
         // Format headers
         var sbHeaders = new StringBuilder();

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using TGenApiClient.Core.Constants;
 using TGenApiClient.Core.Contracts;
 using TGenApiClient.Core.Data;
 using TGenApiClient.Core.Models;
@@ -22,7 +23,7 @@ public class HistoryService : IHistoryRepository
     {
         History.Insert(0, item);
         
-        if (History.Count > 100)
+        if (History.Count > AppConstants.MaxHistoryLimit)
         {
             var itemToRemove = History.Last();
             History.RemoveAt(History.Count - 1);

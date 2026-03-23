@@ -1,97 +1,74 @@
 using System;
 using System.Collections.ObjectModel;
-using System.IO;
-using System.Text.Json;
-using TGenApiClient.Core.Constants;
+using System.Linq;
+using TGenApiClient.Core.Contracts;
+using TGenApiClient.Core.Data;
 using TGenApiClient.Core.Models;
 
 namespace TGenApiClient.Core.Services;
 
-public class HistoryService
+public class HistoryService : IHistoryRepository
 {
-    /// <summary>
-    /// Collection of history items observable by the UI.
-    /// </summary>
+    private readonly HistoryDbContext _dbContext;
     public ObservableCollection<HistoryItem> History { get; } = new();
 
-    /// <summary>
-    /// Initializes a new instance of HistoryService and loads history from the file.
-    /// </summary>
     public HistoryService()
     {
+        _dbContext = new HistoryDbContext();
         LoadHistory();
     }
 
-    /// <summary>
-    /// Adds a new entry to the history collection and saves to persistent storage.
-    /// </summary>
-    /// <param name="item">The history item to add.</param>
     public void AddEntry(HistoryItem item)
     {
-        // Insert at the top for newest first
         History.Insert(0, item);
-        SaveHistory();
-    }
-
-    /// <summary>
-    /// Clears all entries from the history collection and persistent storage.
-    /// </summary>
-    public void ClearHistory()
-    {
-        History.Clear();
-        SaveHistory();
-    }
-
-    /// <summary>
-    /// Removes a specific entry from the history collection.
-    /// </summary>
-    /// <param name="item">The history item to remove.</param>
-    public void RemoveEntry(HistoryItem item)
-    {
-        History.Remove(item);
-        SaveHistory();
-    }
-
-    /// <summary>
-    /// Saves the current history collection to a local JSON file.
-    /// </summary>
-    private void SaveHistory()
-    {
-        try
+        
+        if (History.Count > 100)
         {
-            var options = new JsonSerializerOptions { WriteIndented = true };
-            var json = JsonSerializer.Serialize(History, options);
-            File.WriteAllText(AppConstants.HistoryFilePath, json);
+            var itemToRemove = History.Last();
+            History.RemoveAt(History.Count - 1);
+            try {
+                _dbContext.HistoryItems.Remove(itemToRemove);
+            } catch { /* Ignored if not found */ }
+        }
+
+        try 
+        {
+            _dbContext.HistoryItems.Add(item);
+            _dbContext.SaveChanges();
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Failed to save history: {ex.Message}");
+            Console.WriteLine($"Failed to save history entry to DB: {ex.Message}");
         }
     }
 
-    /// <summary>
-    /// Loads the history collection from the local JSON file if it exists.
-    /// </summary>
+    public void ClearHistory()
+    {
+        History.Clear();
+        try 
+        {
+            _dbContext.HistoryItems.RemoveRange(_dbContext.HistoryItems);
+            _dbContext.SaveChanges();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to clear history from DB: {ex.Message}");
+        }
+    }
+
     private void LoadHistory()
     {
-        if (File.Exists(AppConstants.HistoryFilePath))
+        try
         {
-            try
+            var items = _dbContext.HistoryItems.OrderBy(h => h.Timestamp).ToList();
+            foreach (var item in items)
             {
-                var json = File.ReadAllText(AppConstants.HistoryFilePath);
-                var items = JsonSerializer.Deserialize<ObservableCollection<HistoryItem>>(json);
-                if (items != null)
-                {
-                    foreach (var item in items)
-                    {
-                        History.Add(item);
-                    }
-                }
+                History.Insert(0, item);
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Failed to load history: {ex.Message}");
-            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to load history from DB: {ex.Message}");
         }
     }
 }

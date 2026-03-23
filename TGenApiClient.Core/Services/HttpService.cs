@@ -3,12 +3,13 @@ using System.Diagnostics;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using TGenApiClient.Core.Contracts;
 using TGenApiClient.Core.Models;
 
 namespace TGenApiClient.Core.Services;
 
 
-public class HttpService
+public class HttpService : IRequestExecutionService
 {
     /// <summary>
     /// Shared HttpClient instance used for sending HTTP requests.

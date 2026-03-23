@@ -1,11 +1,12 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using TGenApiClient.Core.Constants;
+using TGenApiClient.Core.Contracts;
 using TGenApiClient.Core.Models;
 
 namespace TGenApiClient.Core.Services;
 
-public class EnvironmentService
+public class EnvironmentService : IEnvironmentService
 {
     /// <summary>
     /// Collection of all available environments.

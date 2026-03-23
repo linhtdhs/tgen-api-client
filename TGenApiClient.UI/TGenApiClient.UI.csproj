@@ -19,5 +19,8 @@
     <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.12" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.12" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\TGenApiClient.Core\TGenApiClient.Core.csproj" />
+  </ItemGroup>
 
 </Project>

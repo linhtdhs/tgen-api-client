@@ -1,9 +1,9 @@
 using System.Collections.ObjectModel;
 using System.Linq;
-using tgenapiclient.Constants;
-using tgenapiclient.Models;
+using TGenApiClient.Core.Constants;
+using TGenApiClient.Core.Models;
 
-namespace tgenapiclient.Services;
+namespace TGenApiClient.Core.Services;
 
 public class EnvironmentService
 {

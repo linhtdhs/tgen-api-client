@@ -3,7 +3,7 @@ using Avalonia.Media;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Rendering;
 
-namespace tgenapiclient.Utils;
+namespace TGenApiClient.UI.Utils;
 
 public class HeaderKeyColorizer : DocumentColorizingTransformer
 {

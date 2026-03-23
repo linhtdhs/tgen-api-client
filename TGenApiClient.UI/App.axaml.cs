@@ -3,7 +3,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 
-namespace tgenapiclient;
+namespace TGenApiClient.UI;
 
 public partial class App : Application
 {

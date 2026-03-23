@@ -1,10 +1,10 @@
 using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using tgenapiclient.Models;
-using tgenapiclient.Services;
+using TGenApiClient.Core.Models;
+using TGenApiClient.Core.Services;
 
-namespace tgenapiclient;
+namespace TGenApiClient.UI;
 
 public partial class EnvironmentWindow : Window
 {

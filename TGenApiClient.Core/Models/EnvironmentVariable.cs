@@ -1,4 +1,4 @@
-namespace tgenapiclient.Models;
+namespace TGenApiClient.Core.Models;
 
 public class EnvironmentVariable
 {

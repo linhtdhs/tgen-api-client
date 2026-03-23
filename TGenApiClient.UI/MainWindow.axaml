@@ -1,8 +1,8 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:models="using:tgenapiclient.Models"
+        xmlns:models="using:TGenApiClient.Core.Models"
         xmlns:AvaloniaEdit="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
-        x:Class="tgenapiclient.MainWindow"
+        x:Class="TGenApiClient.UI.MainWindow"
         Title="tgenapiclient - HTTP Client" MinWidth="800" MinHeight="600"
         Width="1024" Height="768"
         Background="#1E1E1E">

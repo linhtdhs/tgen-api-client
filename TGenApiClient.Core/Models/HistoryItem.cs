@@ -1,7 +1,7 @@
 using System;
-using tgenapiclient.Constants;
+using TGenApiClient.Core.Constants;
 
-namespace tgenapiclient.Models;
+namespace TGenApiClient.Core.Models;
 
 public class HistoryItem
 {

@@ -3,7 +3,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace tgenapiclient.Models;
+namespace TGenApiClient.Core.Models;
 
 public class AppEnvironment : INotifyPropertyChanged
 {

@@ -1,7 +1,7 @@
 using Avalonia;
 using System;
 
-namespace tgenapiclient;
+namespace TGenApiClient.UI;
 
 class Program
 {

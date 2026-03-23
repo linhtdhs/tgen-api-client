@@ -1,7 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:models="using:tgenapiclient.Models"
-        x:Class="tgenapiclient.EnvironmentWindow"
+        xmlns:models="using:TGenApiClient.Core.Models"
+        x:Class="TGenApiClient.UI.EnvironmentWindow"
         Title="Manage Environments" Width="800" Height="500"
         WindowStartupLocation="CenterOwner"
         Background="#1E1E1E">

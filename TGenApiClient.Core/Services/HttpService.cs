@@ -3,9 +3,9 @@ using System.Diagnostics;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using tgenapiclient.Models;
+using TGenApiClient.Core.Models;
 
-namespace tgenapiclient.Services;
+namespace TGenApiClient.Core.Services;
 
 
 public class HttpService

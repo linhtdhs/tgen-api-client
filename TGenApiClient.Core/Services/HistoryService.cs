@@ -2,10 +2,10 @@ using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Text.Json;
-using tgenapiclient.Constants;
-using tgenapiclient.Models;
+using TGenApiClient.Core.Constants;
+using TGenApiClient.Core.Models;
 
-namespace tgenapiclient.Services;
+namespace TGenApiClient.Core.Services;
 
 public class HistoryService
 {

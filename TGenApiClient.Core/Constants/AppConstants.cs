@@ -1,4 +1,4 @@
-namespace tgenapiclient.Constants;
+namespace TGenApiClient.Core.Constants;
 
 public static class AppConstants
 {

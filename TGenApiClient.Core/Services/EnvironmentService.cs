@@ -24,8 +24,8 @@ public class EnvironmentService : IEnvironmentService
     public EnvironmentService()
     {
         // Add a default environment
-        var defaultEnv = new AppEnvironment("Default");
-        defaultEnv.Variables.Add(new EnvironmentVariable("baseUrl", AppConstants.DefaultBaseUrl));
+        var defaultEnv = new AppEnvironment(AppConstants.DefaultEnvironmentName);
+        defaultEnv.Variables.Add(new EnvironmentVariable(AppConstants.DefaultBaseUrlVariable, AppConstants.DefaultBaseUrl));
         Environments.Add(defaultEnv);
         ActiveEnvironment = defaultEnv;
     }

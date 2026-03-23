@@ -8,6 +8,21 @@
 * Language: C# 14
 * Local Storage: SQLite (Strictly localized to `AppContext.BaseDirectory` to ensure zero host-machine footprint)
 * Architecture: Pragmatic 2-Tier MVVM
+**Rules**:
+* Comment on each interface, function, variable and class
+* Do not nest "if" more than 3 times
+* Do not repeat your self
+* Do not hard code any value or use magic string/number. Create constant for them
+* Use .ConfigureAwait(false) on outbound I/O function
+* Use async/await on all I/O function
+* Use C# 14 features
+* Use Avalonia UI for the UI
+* Use MVVM pattern for the UI
+* Use CommunityToolkit.Mvvm for the UI
+* Use SQLite for the database
+* Use Entity Framework Core for the database
+* Use .NET 10 for the application
+* Use Self-Contained, Single-File Deployment for the application
 
 ## 2. Architectural Rules (Strict Adherence Required)
 You must implement a **2-Tier MVVM Architecture** utilizing "Right-Sized" **SOLID** principles. Do not over-engineer with excessive domain layers. The solution must be divided into exactly two projects:

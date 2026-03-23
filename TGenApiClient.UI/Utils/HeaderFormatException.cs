@@ -1,6 +1,6 @@
 using System;
 
-namespace tgenapiclient.Utils;
+namespace TGenApiClient.UI.Utils;
 
 public class HeaderFormatException : Exception
 {

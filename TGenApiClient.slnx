@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="TGenApiClient.Core/TGenApiClient.Core.csproj" />
+  <Project Path="TGenApiClient.UI/TGenApiClient.UI.csproj" />
+</Solution>

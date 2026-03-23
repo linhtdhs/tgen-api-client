@@ -3,7 +3,7 @@ using System.Text;
 using System.Text.Json;
 using System.Xml.Linq;
 
-namespace tgenapiclient.Utils;
+namespace TGenApiClient.UI.Utils;
 
 public static class TextFormatter
 {

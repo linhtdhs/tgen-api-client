@@ -1,7 +1,7 @@
 using System;
 using Avalonia.Controls;
 
-namespace tgenapiclient.Utils;
+namespace TGenApiClient.UI.Utils;
 
 public static class ErrorHighlighter
 {

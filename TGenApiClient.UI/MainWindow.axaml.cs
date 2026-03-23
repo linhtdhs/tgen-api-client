@@ -2,17 +2,17 @@ using System;
 using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
-using tgenapiclient.Constants;
+using TGenApiClient.Core.Constants;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using AvaloniaEdit;
-using tgenapiclient.Models;
-using tgenapiclient.Services;
-using tgenapiclient.Utils;
+using TGenApiClient.Core.Models;
+using TGenApiClient.Core.Services;
+using TGenApiClient.UI.Utils;
 
-namespace tgenapiclient;
+namespace TGenApiClient.UI;
 
 public partial class MainWindow : Window
 {

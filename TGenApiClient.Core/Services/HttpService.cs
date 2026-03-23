@@ -3,15 +3,26 @@ using System.Diagnostics;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using tgenapiclient.Models;
+using TGenApiClient.Core.Models;
 
-namespace tgenapiclient.Services;
+namespace TGenApiClient.Core.Services;
 
 
 public class HttpService
 {
+    /// <summary>
+    /// Shared HttpClient instance used for sending HTTP requests.
+    /// </summary>
     private static readonly HttpClient _httpClient = new HttpClient();
 
+    /// <summary>
+    /// Sends an asynchronous HTTP request using the specified parameters.
+    /// </summary>
+    /// <param name="method">The HTTP method to use (e.g., GET, POST).</param>
+    /// <param name="url">The exact URL to send the request to.</param>
+    /// <param name="headersText">The headers string with each key-value pair on a separate line.</param>
+    /// <param name="bodyText">The raw request body string to send.</param>
+    /// <returns>A generalized object containing response status, timing, headers, and body content.</returns>
     public async Task<HttpResponseData> SendRequestAsync(HttpMethod method, string url, string headersText, string bodyText)
     {
         var request = new HttpRequestMessage(method, url);
